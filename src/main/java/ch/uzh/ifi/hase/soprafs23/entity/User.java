@@ -31,6 +31,9 @@ public class User implements Serializable {
   @Column(nullable = false, unique = true)
   private String username;
 
+  @Column(nullable = false)
+  private String creationDate;
+
   @Column(nullable = false, unique = true)
   private String token;
 
@@ -51,6 +54,14 @@ public class User implements Serializable {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public String getCreationDate() {
+      return creationDate;
+  }
+
+  public void setCreationDate(String creationDate) {
+      this.creationDate = creationDate;
   }
 
   public String getUsername() {
