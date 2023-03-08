@@ -5,10 +5,10 @@ import ch.uzh.ifi.hase.soprafs23.constant.UserStatus;
 public class UserGetDTO {
 
   private Long id;
-  private String name;
   private String username;
   private UserStatus status;
-  private String creationDate;
+  private String creation_date;
+  private String birthday;
 
   public Long getId() {
     return id;
@@ -16,14 +16,6 @@ public class UserGetDTO {
 
   public void setId(Long id) {
     this.id = id;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
   }
 
   public String getUsername() {
@@ -42,11 +34,19 @@ public class UserGetDTO {
     this.status = status;
   }
 
-  public String getCreationDate(){
-      return creationDate;
+  public String getCreation_date(){
+      return creation_date;
   }
 
-  public void setCreationDate(String creationDate){
-      this.creationDate = creationDate;
+  public void setCreation_date(String creation_date){
+      this.creation_date = creation_date;
+  }
+
+  public String getBirthday() {
+      return birthday;
+  }
+
+  public void setBirthday(String birthday) {
+      this.birthday = birthday;
   }
 }
