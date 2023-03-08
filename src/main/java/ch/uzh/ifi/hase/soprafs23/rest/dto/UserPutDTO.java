@@ -2,6 +2,8 @@ package ch.uzh.ifi.hase.soprafs23.rest.dto;
 
 import ch.uzh.ifi.hase.soprafs23.constant.UserStatus;
 
+import java.util.Date;
+
 public class UserPutDTO {
     // TODO should remove id and status here > id can be got as pathvariable
     // status should be handled by a separate DTO (if any DTO at all tbh)
@@ -9,7 +11,7 @@ public class UserPutDTO {
     private Long id;
     private String username;
     private UserStatus status;
-    private String birthday;
+    private Date birthday;
 
     public Long getId() {
         return id;
@@ -35,11 +37,11 @@ public class UserPutDTO {
         this.status = status;
     }
 
-    public String getBirthday() {
+    public Date getBirthday() {
         return birthday;
     }
 
-    public void setBirthday(String birthday) {
+    public void setBirthday(Date birthday) {
         this.birthday = birthday;
     }
 }

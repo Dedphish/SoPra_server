@@ -14,6 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,8 +48,17 @@ public class UserService {
     newUser.setToken(UUID.randomUUID().toString());
     newUser.setStatus(UserStatus.ONLINE);
 
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM");
-    newUser.setCreation_date(formatter.format(LocalDate.now()));
+    newUser.setCreation_date(new Date());
+    /* try {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Date dateWithoutTime = sdf.parse(sdf.format(new Date()));
+        newUser.setCreation_date(dateWithoutTime);
+    }
+    catch (ParseException p) {
+        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                "ParseException when trying to initialize creation date");
+    }*/
+
 
     checkIfUsernameTaken(newUser);
     // saves the given entity but data is only persisted in the database once
@@ -85,6 +97,7 @@ public class UserService {
         }
         return user.get();
     }
+
   public void updateUser(User updatedUser, String id) {
       User origUser = getUserById(id);
 
@@ -93,12 +106,24 @@ public class UserService {
       }
 
       // if there is a new username
-      if(!updatedUser.getUsername().equals(origUser.getUsername())){
+      if(!updatedUser.getUsername().equals(origUser.getUsername())) {
           checkIfUsernameTaken(updatedUser);
           origUser.setUsername(updatedUser.getUsername());
       }
 
-      origUser.setBirthday(updatedUser.getBirthday());
+      if(updatedUser.getBirthday() != null) {
+          origUser.setBirthday(updatedUser.getBirthday());
+
+          /*
+          try {
+              SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+              Date dateWithoutTime = sdf.parse(sdf.format(updatedUser.getBirthday()));
+              origUser.setBirthday(dateWithoutTime);
+          }
+          catch (ParseException p) {
+              throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The provided date could not be parsed");
+          }*/
+      }
 
       userRepository.save(origUser);
       userRepository.flush();
@@ -126,9 +151,16 @@ public class UserService {
 
   public void logout(String token) {
       User user = userRepository.findByToken(token);
+
+      if(user == null) {
+          throw new ResponseStatusException(HttpStatus.NOT_FOUND, "The user you tried to log out was not found");
+      }
+
       user.setStatus(UserStatus.OFFLINE);
       userRepository.save(user);
       userRepository.flush();
+
+
   }
 
   // TODO try implementing authorization with http headers

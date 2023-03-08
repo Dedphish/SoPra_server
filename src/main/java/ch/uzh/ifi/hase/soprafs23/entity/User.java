@@ -39,11 +39,10 @@ public class User implements Serializable {
   private UserStatus status;
 
   @Column(nullable = false)
-  private String creation_date;
+  private Date creation_date;
 
-  // TODO make birthday and creationdate of type date
   @Column
-  private String birthday;
+  private Date birthday;
 
   public Long getId() {
     return id;
@@ -85,19 +84,19 @@ public class User implements Serializable {
     this.status = status;
   }
 
-  public String getCreation_date(){
+  public Date getCreation_date(){
       return creation_date;
   }
 
-  public void setCreation_date(String creationDate){
+  public void setCreation_date(Date creationDate){
       this.creation_date = creationDate;
   }
 
-  public String getBirthday() {
+  public Date getBirthday() {
         return birthday;
   }
 
-  public void setBirthday(String birthday) {
+  public void setBirthday(Date birthday) {
         this.birthday = birthday;
     }
 }
