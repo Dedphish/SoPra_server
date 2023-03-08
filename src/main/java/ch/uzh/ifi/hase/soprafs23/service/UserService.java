@@ -20,6 +20,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -47,7 +49,6 @@ public class UserService {
   public User createUser(User newUser) {
     newUser.setToken(UUID.randomUUID().toString());
     newUser.setStatus(UserStatus.ONLINE);
-
     newUser.setCreation_date(new Date());
     /* try {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -59,8 +60,8 @@ public class UserService {
                 "ParseException when trying to initialize creation date");
     }*/
 
-
     checkIfUsernameTaken(newUser);
+
     // saves the given entity but data is only persisted in the database once
     // flush() is called
     newUser = userRepository.save(newUser);
