@@ -80,7 +80,7 @@ public class UserController {
         return DTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
     }
 
-    @PutMapping("/users/{userid}/edit")
+    @PutMapping("/users/{userid}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateUser(@RequestBody UserPutDTO userPutDTO, @PathVariable String userid)
     {
