@@ -47,7 +47,7 @@ public class UserControllerTest {
   public void givenUsers_whenGetUsers_thenReturnJsonArray() throws Exception {
     // given
     User user = new User();
-    user.setName("Firstname Lastname");
+    user.setPassword("password");
     user.setUsername("firstname@lastname");
     user.setStatus(UserStatus.OFFLINE);
 
@@ -63,23 +63,24 @@ public class UserControllerTest {
     // then
     mockMvc.perform(getRequest).andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].name", is(user.getName())))
+        .andExpect(jsonPath("$[0].password", is(user.getPassword())))
         .andExpect(jsonPath("$[0].username", is(user.getUsername())))
         .andExpect(jsonPath("$[0].status", is(user.getStatus().toString())));
   }
 
   @Test
   public void createUser_validInput_userCreated() throws Exception {
-    // given
+    // init new User
     User user = new User();
     user.setId(1L);
-    user.setName("Test User");
+    user.setPassword("testPassword");
     user.setUsername("testUsername");
     user.setToken("1");
     user.setStatus(UserStatus.ONLINE);
 
+    // init corresponding UserPostDTO
     UserPostDTO userPostDTO = new UserPostDTO();
-    userPostDTO.setName("Test User");
+    userPostDTO.setPassword("testPassword");
     userPostDTO.setUsername("testUsername");
 
     given(userService.createUser(Mockito.any())).willReturn(user);
@@ -93,11 +94,41 @@ public class UserControllerTest {
     mockMvc.perform(postRequest)
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.id", is(user.getId().intValue())))
-        .andExpect(jsonPath("$.name", is(user.getName())))
+        .andExpect(jsonPath("$.password", is(user.getPassword())))
         .andExpect(jsonPath("$.username", is(user.getUsername())))
         .andExpect(jsonPath("$.status", is(user.getStatus().toString())));
   }
 
+  @Test
+  public void givenUser_whenGetUser_thenReturnJsonObject() throws Exception {
+
+      String id = "1L";
+
+      User user = new User();
+      user.setId(Long.parseLong(id));
+      user.setPassword("testPassword");
+      user.setUsername("testUsername");
+      user.setToken("1");
+      user.setStatus(UserStatus.ONLINE);
+
+      given(userService.getUserById(id)).willReturn(user);
+
+      MockHttpServletRequestBuilder getRequest = post(String.format("/users/%s", id))
+              .contentType(MediaType.APPLICATION_JSON);
+
+      mockMvc.perform(getRequest)
+              .andExpect(status().isOk())
+              .andExpect(jsonPath("$.id", is(user.getId())))
+              .andExpect(jsonPath("$.username", is(user.getUsername())))
+              .andExpect(jsonPath("$.password", is(user.getUsername())))
+              .andExpect(jsonPath("$.token", is(user.getToken())))
+              .andExpect(jsonPath("$.status", is(user.getStatus())));
+  }
+
+  @Test
+  public void updateUser_validInput_userUpdated() throws Exception {
+
+  }
   /**
    * Helper Method to convert userPostDTO into a JSON string such that the input
    * can be processed

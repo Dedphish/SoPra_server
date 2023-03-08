@@ -116,10 +116,5 @@ public class UserController {
         userService.logout(userTokenDTO.getToken());
     }
 
-    @PutMapping("/users/{userid}")
-    @ResponseStatus(HttpStatus.OK)
-    public void changeStatus(@PathVariable String userid) {
-        userService.changeStatus(userid);
-    }
 
 }
