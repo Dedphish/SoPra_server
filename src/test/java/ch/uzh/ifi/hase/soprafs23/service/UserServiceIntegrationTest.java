@@ -11,6 +11,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -40,7 +44,7 @@ public class UserServiceIntegrationTest {
     assertNull(userRepository.findByUsername("testUsername"));
 
     User testUser = new User();
-    testUser.setName("testName");
+    testUser.setPassword("testPassword");
     testUser.setUsername("testUsername");
 
     // when
@@ -48,10 +52,10 @@ public class UserServiceIntegrationTest {
 
     // then
     assertEquals(testUser.getId(), createdUser.getId());
-    assertEquals(testUser.getName(), createdUser.getName());
+    assertEquals(testUser.getPassword(), createdUser.getPassword());
     assertEquals(testUser.getUsername(), createdUser.getUsername());
     assertNotNull(createdUser.getToken());
-    assertEquals(UserStatus.OFFLINE, createdUser.getStatus());
+    assertEquals(UserStatus.ONLINE, createdUser.getStatus());
   }
 
   @Test
@@ -59,18 +63,41 @@ public class UserServiceIntegrationTest {
     assertNull(userRepository.findByUsername("testUsername"));
 
     User testUser = new User();
-    testUser.setName("testName");
+    testUser.setPassword("testPassword");
     testUser.setUsername("testUsername");
     User createdUser = userService.createUser(testUser);
 
     // attempt to create second user with same username
     User testUser2 = new User();
 
-    // change the name but forget about the username
-    testUser2.setName("testName2");
+    // set username to already taken username
+    testUser2.setPassword("testPassword2");
     testUser2.setUsername("testUsername");
 
     // check that an error is thrown
     assertThrows(ResponseStatusException.class, () -> userService.createUser(testUser2));
+  }
+
+ // new
+  @Test
+  public void updateUser_nonExistentId_throwsException() {
+      assertNull(userRepository.findByUsername("testUsername"));
+
+      String id = "1";
+      User testUpdateUser = new User();
+      testUpdateUser.setUsername("Username");
+      testUpdateUser.setId(Long.parseLong(id));
+      Date bd = new GregorianCalendar(2020, Calendar.FEBRUARY, 20).getTime();
+      testUpdateUser.setBirthday(bd);
+
+      assertThrows(ResponseStatusException.class, () -> userService.updateUser(testUpdateUser, id));
+  }
+
+  @Test
+  public void matchToken_mismatch_throwsException() {
+
+      User existingUser = new User();
+      existingUser.setToken("testToken");
+      existingUser.setPassword("testPassword");
   }
 }

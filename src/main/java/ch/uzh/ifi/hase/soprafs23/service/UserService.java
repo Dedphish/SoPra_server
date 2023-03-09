@@ -68,6 +68,7 @@ public class UserService {
     userRepository.flush();
 
     log.debug("Created Information for User: {}", newUser);
+
     return newUser;
   }
 
@@ -85,7 +86,7 @@ public class UserService {
         Optional<User> user;
         try{
             id = Long.parseLong(userid);
-            user= this.userRepository.findById(id);
+            user = this.userRepository.findById(id);
         }
         catch(NumberFormatException e)
         {
@@ -127,26 +128,6 @@ public class UserService {
       }
 
       userRepository.save(origUser);
-      userRepository.flush();
-  }
-
-  /**
-   * Changes a users status from offline to online or vice versa
-   * userId is converted to Long inside getUserByID()
-   * @throws ResponseStatusException if the userId does not correspond to a user
-   * */
-  public void changeStatus(String userId) {
-      User user = getUserById(userId);
-
-      if(user == null) {
-          throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Error: The requested user was not found");
-      }
-
-      UserStatus status = user.getStatus();
-      // returns the opposite status; (ordinal + 1) % 2
-      user.setStatus(UserStatus.values()[(status.ordinal() + 1) % 2]);
-
-      userRepository.save(user);
       userRepository.flush();
   }
 

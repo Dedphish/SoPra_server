@@ -3,6 +3,8 @@ package ch.uzh.ifi.hase.soprafs23.controller;
 import ch.uzh.ifi.hase.soprafs23.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs23.entity.User;
 import ch.uzh.ifi.hase.soprafs23.rest.dto.UserPostDTO;
+import ch.uzh.ifi.hase.soprafs23.rest.dto.UserPutDTO;
+import ch.uzh.ifi.hase.soprafs23.rest.dto.UserTokenDTO;
 import ch.uzh.ifi.hase.soprafs23.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,14 +19,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.text.SimpleDateFormat;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willReturn;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -45,9 +49,11 @@ public class UserControllerTest {
 
   @Test
   public void givenUsers_whenGetUsers_thenReturnJsonArray() throws Exception {
+    Date date = new Date();
     // given
     User user = new User();
-    user.setPassword("password");
+    user.setId(1L);
+    user.setCreation_date(date);
     user.setUsername("firstname@lastname");
     user.setStatus(UserStatus.OFFLINE);
 
@@ -60,10 +66,16 @@ public class UserControllerTest {
     // when
     MockHttpServletRequestBuilder getRequest = get("/users").contentType(MediaType.APPLICATION_JSON);
 
+    // have to reformat user creation_date because Date.toString() doesn't convert the object
+    // to string in the same manner as the DTOMapperImplementation
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'+00:00'", Locale.getDefault());
+    sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+    String formattedDate = sdf.format(user.getCreation_date());
     // then
     mockMvc.perform(getRequest).andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].password", is(user.getPassword())))
+        .andExpect(jsonPath("$[0].id", is(user.getId().intValue())))
+        .andExpect(jsonPath("$[0].creation_date", is(formattedDate)))
         .andExpect(jsonPath("$[0].username", is(user.getUsername())))
         .andExpect(jsonPath("$[0].status", is(user.getStatus().toString())));
   }
@@ -90,47 +102,85 @@ public class UserControllerTest {
         .contentType(MediaType.APPLICATION_JSON)
         .content(asJsonString(userPostDTO));
 
-    // then
+    // then -> UserTokenDTO is returned
     mockMvc.perform(postRequest)
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.id", is(user.getId().intValue())))
-        .andExpect(jsonPath("$.password", is(user.getPassword())))
-        .andExpect(jsonPath("$.username", is(user.getUsername())))
-        .andExpect(jsonPath("$.status", is(user.getStatus().toString())));
+        .andExpect(jsonPath("$.token", is(user.getToken())));
   }
 
+  // new
   @Test
-  public void givenUser_whenGetUser_thenReturnJsonObject() throws Exception {
+  public void User_GetUser_ReturnJsonObject() throws Exception {
 
-      String id = "1L";
-
+      String id = "1";
+      Date cd = new Date();
       User user = new User();
       user.setId(Long.parseLong(id));
       user.setPassword("testPassword");
       user.setUsername("testUsername");
       user.setToken("1");
       user.setStatus(UserStatus.ONLINE);
+      user.setCreation_date(cd);
 
       given(userService.getUserById(id)).willReturn(user);
 
-      MockHttpServletRequestBuilder getRequest = post(String.format("/users/%s", id))
+      MockHttpServletRequestBuilder getRequest = get(String.format("/users/%s", id))
               .contentType(MediaType.APPLICATION_JSON);
+
+      // have to reformat user creation_date because Date.toString() doesn't convert the object
+      // to string in the same manner as the DTOMapperImplementation
+      // JSON return
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'+00:00'", Locale.getDefault());
+      sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+      String formattedDate = sdf.format(user.getCreation_date());
 
       mockMvc.perform(getRequest)
               .andExpect(status().isOk())
-              .andExpect(jsonPath("$.id", is(user.getId())))
+              .andExpect(jsonPath("$.id", is(user.getId().intValue())))
               .andExpect(jsonPath("$.username", is(user.getUsername())))
-              .andExpect(jsonPath("$.password", is(user.getUsername())))
-              .andExpect(jsonPath("$.token", is(user.getToken())))
-              .andExpect(jsonPath("$.status", is(user.getStatus())));
+              .andExpect(jsonPath("$.status", is(user.getStatus().toString())))
+              .andExpect(jsonPath("$.creation_date", is(formattedDate)))
+              .andExpect(jsonPath("$.birthday", is(user.getBirthday())));
   }
 
+  // new
   @Test
   public void updateUser_validInput_userUpdated() throws Exception {
 
+      String id = "1";
+
+      UserPutDTO userPutDTO = new UserPutDTO();
+      userPutDTO.setUsername("updatedUsername");
+      userPutDTO.setId(Long.parseLong(id));
+      userPutDTO.setStatus(UserStatus.ONLINE);
+      Date bd = new Date();
+      userPutDTO.setBirthday(bd);
+
+      MockHttpServletRequestBuilder putRequest = put(String.format("/users/%s", id))
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(asJsonString(userPutDTO));
+
+      mockMvc.perform(putRequest)
+              .andExpect(status().isNoContent());
+  }
+
+  // new
+  @Test
+  public void matchToken_validInput_statusOk() throws Exception {
+      String id = "1";
+
+      UserTokenDTO userTokenDTO = new UserTokenDTO();
+      userTokenDTO.setToken("testToken");
+
+      MockHttpServletRequestBuilder postRequest = post(("/users/%s/edit"), id)
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(asJsonString(userTokenDTO));
+
+      mockMvc.perform(postRequest)
+              .andExpect(status().isOk());
   }
   /**
-   * Helper Method to convert userPostDTO into a JSON string such that the input
+   * Helper Method to convert userPostDTO (should work for any DTO?) into a JSON string such that the input
    * can be processed
    * Input will look like this: {"name": "Test User", "username": "testUsername"}
    * 
